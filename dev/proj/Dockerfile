@@ -1,0 +1,7 @@
+ARG BW_RUST_DOCKER_IMAGE
+ARG BW_RUST_DOCKER_TAG
+FROM ${BW_RUST_DOCKER_IMAGE}:${BW_RUST_DOCKER_TAG}
+
+RUN apk add build-base
+RUN apk add dumb-init 
+RUN apk add bash
