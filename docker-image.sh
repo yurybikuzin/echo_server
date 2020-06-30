@@ -1,9 +1,6 @@
-#!/usr/bin/env bash
-set -e
+#!/usr/bin/env bash 
 
-# Version 0.1.1, 2020-06-30
-
-target=prod
+# Version 2.0.0, 2020-07-01
 
 cmdname=${0##*/}
 
@@ -15,14 +12,16 @@ usage()
 {
     cat << USAGE >&2
 Description:
-    build image of service (Dockerfile in subfolder at $target/) and push to Docker Hub
+    build image of service (Dockerfile in subfolder at ./TARGET/) and push to Docker Hub
 Usage:
     $cmdname [--help | [SERVICE] [-b] ]
 params:
-    SERVICE   from docker-compose.yml, and self-titled subfolder at $target/, 'proj' by default
+    TARGET      'dev' or 'prod', 'dev' by default
+    SERVICE     from self-titled subfolder at ./TARGET/, 'proj' by default
 options:
-    -b        build only, no push
-    --help    this help
+    -b          build only, no push
+    --help      this help
+    --no-cache  pass '--no-cache' to 'docker build'
 USAGE
     exit 1
 }
@@ -54,6 +53,16 @@ do
             usage
         ;;
 
+        dev | prod) 
+            if [[ $target == "" ]]; then
+                target=$1
+            else 
+                echoerr "TARGET must be specified only once, but two found: '$target' and '$1'"
+                usage
+            fi
+            shift 1
+        ;;
+
         *)
             if [[ $service == "" ]]; then
                 service=$1
@@ -66,34 +75,23 @@ do
     esac
 done
 
+if [[ ! $target ]]; then
+    target=dev
+fi
+TARGET=${target^^}
+
 if [[ ! $service ]]; then
     service=proj
 fi
+SERVICE=${service^^}
 
-
-if [[ $service == proj ]]; then
-    docker-compose up -d
-    docker exec -it echo-$service cargo build --release
-    cp target/release/echo prod/proj/copy/
-    # ls target/release/echo
-    # echo TODO
-else 
-    echoerr "SERVICE other than 'proj is not supported"
-fi
-
-bw_proj_name=$(env $(cat .env | grep -v '#' | xargs) bash -c 'echo $BW_PROJ_NAME')
-if [[ ! $bw_proj_name ]]; then
-    echoerr "BW_PROJ_NAME value must be specified in file'.env'"
-    exit 1
-fi
-
-bw_version=$(env $(cat .env | grep -v '#' | xargs) bash -c 'echo $BW_PROD_VERSION')
+bw_version=$(env $(cat .env | grep -v '#' | xargs) bash -c 'echo $BW_'$TARGET'_'$SERVICE'_VERSION')
 if [[ ! $bw_version ]]; then
-    echoerr "BW_PROD_VERSION value must be specified in file'.env'"
+    echoerr "BW_${TARGET}_${SERVICE}_VERSION value must be specified in file'.env'"
     exit 1
 fi
 
-version_fspec="$target/version.yml"
+version_fspec="$target.yml"
 did_version=$(cat "$version_fspec" | sed -nr "s/^$service:[[:space:]]*([^[:space:]])/\1/p;")
 if [[ ! $did_version ]]; then
     echoerr "$service: VERSION not found in file'$version_fspec'"
@@ -101,12 +99,12 @@ if [[ ! $did_version ]]; then
 fi
 
 if [[ ! $build_only && $bw_version == $did_version ]]; then
-    echoerr "BW_PROD_VERSION ($bw_version) in file'.env' must differ (be bigger) than version ($did_version) in file'$version_fspec' in line: image: bazawinner/$target-${bw_proj_name}-$service:$did_version"
+    echoerr "BW_${TARGET}_${SERVICE}_VERSION ($bw_version) in file'.env' must differ (be bigger) than version ($did_version) in file'$version_fspec' in line: $service: $did_version"
     exit 1
 fi
 
 env $(cat .env | grep -v '#' | xargs) bash -c '\
-    tag=bazawinner/'$target'-$BW_PROJ_NAME-'$service':$BW_PROD_VERSION
+    tag=bazawinner/'$target'-$BW_PROJ_NAME-'$service':$BW_'$TARGET'_'$SERVICE'_VERSION
     echo Building $tag . . .
     docker build '${opts[@]}' \
         $(\
@@ -124,4 +122,3 @@ env $(cat .env | grep -v '#' | xargs) bash -c '\
         echo OK: Pushed $tag
     fi
 '
-

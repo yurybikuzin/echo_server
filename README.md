@@ -99,8 +99,10 @@ docker run -p 42101:8000 bazawinner/prod-echo-proj:0.1.0
 - `.gitignore` - see https://git-scm.com/docs/gitignore
 - `docker-compose.yml` - required for `docker-compose up -d`
 - `.env` - required for `docker-compose up -d`
+- `docker-image.sh` - tool for rebuilding docker image of service (`proj` by default) for target (`dev` or `prod`, `dev` by default)
+- `dev.yml` - pushed versions of docker images for target `dev`
+- `prod.yml` - pushed version of docker images for target `prod`
 - `dev/` - folder for docker-container definitions for development
-    - `dev/docker-image.sh` - tool for rebuilding docker container for service from `docker-compose.yml` (`proj` by default)
     - `dev/proj/Dockerfile` - Dockerfile for service `proj`, mentioned in `docker-compose.yml`
     - `dev/proj/sh/*` - helper sh-scripts used in `echo-proj` docker container
 - `prod/` - folder for docker-container definitions for production
