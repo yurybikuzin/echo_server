@@ -4,9 +4,8 @@ services:
 
     proj:
         container_name: ${BW_PROJ_NAME}-proj
-        image: bazawinner/dev-${BW_PROJ_NAME}-proj:${BW_DEV_VERSION}
+        image: bazawinner/dev-${BW_PROJ_NAME}-proj:${BW_DEV_PROJ_VERSION}
         entrypoint: ["docker-entrypoint.sh"]
-        # entrypoint: ["sh"]
         working_dir: /proj
         tty: true
         environment:
