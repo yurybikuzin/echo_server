@@ -14,7 +14,7 @@
 * [Release](#release)
     * [Check](#check)
     * [Make](#make)
-    * [Run](#run)
+    * [Deploy](#deploy)
 * [Files](#files)
 
 <!-- vim-markdown-toc -->
@@ -75,21 +75,21 @@ docker-compose down
 
 ### Check
 
-Before release check `.env` and `prod/version.yml`:
-BW_PROD_VERSION at `.env` must be bigger than version in `prod/version.yml`
+Before release check `prod/.env` and `prod.yml`:
+BW_PROD_PROJ_VERSION at `prod/.env` must be bigger than `proj` version in `prod.yml`
 
 ### Make
 
 To make a release:
 ```
-prod/docker-image.sh
+./docker-image.sh prod 
 ```
 
-### Run
+### Deploy
 
-To run a release:
+To deploy a release:
 ```
-docker run -p 42101:8000 bazawinner/prod-echo-proj:0.1.0
+./deploy.sh
 ```
 
 ## Files

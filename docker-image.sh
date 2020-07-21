@@ -1,7 +1,8 @@
 #!/usr/bin/env bash 
 
-# Version 2.0.0, 2020-07-01
+# Version 3.0.0, 2020-07-21
 
+env_src=(.env prod/.env)
 cmdname=${0##*/}
 
 echoerr() { 
@@ -85,9 +86,9 @@ if [[ ! $service ]]; then
 fi
 SERVICE=${service^^}
 
-bw_version=$(env $(cat .env | grep -v '#' | xargs) bash -c 'echo $BW_'$TARGET'_'$SERVICE'_VERSION')
+bw_version=$(env $(cat "${env_src[@]}" | grep -v '#' | xargs) bash -c 'echo $BW_'$TARGET'_'$SERVICE'_VERSION')
 if [[ ! $bw_version ]]; then
-    echoerr "BW_${TARGET}_${SERVICE}_VERSION value must be specified in file'.env'"
+    echoerr "BW_${TARGET}_${SERVICE}_VERSION value must be specified in ${env_src[@]}"
     exit 1
 fi
 
@@ -99,11 +100,15 @@ if [[ ! $did_version ]]; then
 fi
 
 if [[ ! $build_only && $bw_version == $did_version ]]; then
-    echoerr "BW_${TARGET}_${SERVICE}_VERSION ($bw_version) in file'.env' must differ (be bigger) than version ($did_version) in file'$version_fspec' in line: $service: $did_version"
+    echoerr "BW_${TARGET}_${SERVICE}_VERSION ($bw_version) in ${env_src[@]} must differ (be bigger) than version ($did_version) in file'$version_fspec' in line: $service: $did_version"
     exit 1
 fi
 
-env $(cat .env | grep -v '#' | xargs) bash -c '\
+if [[ -e "$target/$service/before.sh" ]]; then
+    $target/$service/before.sh
+fi
+
+env $(cat ${env_src[@]} | grep -v '#' | xargs) bash -c '\
     tag=bazawinner/'$target'-$BW_PROJ_NAME-'$service':$BW_'$TARGET'_'$SERVICE'_VERSION
     echo Building $tag . . .
     docker build '${opts[@]}' \

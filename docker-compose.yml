@@ -18,4 +18,4 @@ services:
             - .:/proj
             - ./registry:/usr/local/cargo/registry
         ports:
-            - ${BW_PROJ_PORT}:8000
+            - ${BW_DEV_PROJ_PORT}:8000

@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+
+    proj:
+        container_name: ${BW_PROJ_NAME}-proj
+        image: bazawinner/prod-${BW_PROJ_NAME}-proj:${BW_PROD_PROJ_VERSION}
+        tty: true
+        environment:
+            - TZ=Europe/Moscow
+            - BW_PROJ_NAME
+        ports:
+            - ${BW_PROD_PROJ_PORT}:8000
